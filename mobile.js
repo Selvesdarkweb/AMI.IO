@@ -2,102 +2,92 @@ let highestZ = 1;
 
 class Paper {
   holdingPaper = false;
-  touchStartX = 0;
-  touchStartY = 0;
-  touchMoveX = 0;
-  touchMoveY = 0;
-  touchEndX = 0;
-  touchEndY = 0;
-  prevTouchX = 0;
-  prevTouchY = 0;
+  startX = 0;
+  startY = 0;
+  currentX = 0;
+  currentY = 0;
+  prevX = 0;
+  prevY = 0;
   velX = 0;
   velY = 0;
   rotation = Math.random() * 30 - 15;
-  currentPaperX = 0;
-  currentPaperY = 0;
   rotating = false;
 
   init(paper) {
-    const startHandler = (e) => {
-      if (this.holdingPaper) return;
-      this.holdingPaper = true;
-      
-      paper.style.zIndex = highestZ;
-      highestZ += 1;
-      
-      if (e.touches) { // For touch events
-        this.touchStartX = e.touches[0].clientX;
-        this.touchStartY = e.touches[0].clientY;
-      } else { // For mouse events
-        this.touchStartX = e.clientX;
-        this.touchStartY = e.clientY;
-      }
-      this.prevTouchX = this.touchStartX;
-      this.prevTouchY = this.touchStartY;
-    };
+    this.paper = paper;
 
-    const moveHandler = (e) => {
-      e.preventDefault();
-      if (this.rotating) return;
-
-      if (e.touches) { // For touch events
-        this.touchMoveX = e.touches[0].clientX;
-        this.touchMoveY = e.touches[0].clientY;
-      } else { // For mouse events
-        this.touchMoveX = e.clientX;
-        this.touchMoveY = e.clientY;
-      }
-
-      this.velX = this.touchMoveX - this.prevTouchX;
-      this.velY = this.touchMoveY - this.prevTouchY;
-
-      const dirX = this.touchMoveX - this.touchStartX;
-      const dirY = this.touchMoveY - this.touchStartY;
-      const dirLength = Math.sqrt(dirX * dirX + dirY * dirY);
-      const dirNormalizedX = dirX / dirLength;
-      const dirNormalizedY = dirY / dirLength;
-
-      const angle = Math.atan2(dirNormalizedY, dirNormalizedX);
-      let degrees = 180 * angle / Math.PI;
-      degrees = (360 + Math.round(degrees)) % 360;
-      if (this.rotating) {
-        this.rotation = degrees;
+    // Common function to handle movement
+    const handleMovement = (x, y) => {
+      if (!this.rotating) {
+        this.velX = x - this.prevX;
+        this.velY = y - this.prevY;
+        this.rotation = (360 + Math.round(180 * Math.atan2(y - this.startY, x - this.startX) / Math.PI)) % 360;
       }
 
       if (this.holdingPaper) {
         if (!this.rotating) {
-          this.currentPaperX += this.velX;
-          this.currentPaperY += this.velY;
+          this.currentX += this.velX;
+          this.currentY += this.velY;
         }
-        this.prevTouchX = this.touchMoveX;
-        this.prevTouchY = this.touchMoveY;
-
-        paper.style.transform = `translateX(${this.currentPaperX}px) translateY(${this.currentPaperY}px) rotateZ(${this.rotation}deg)`;
+        this.prevX = x;
+        this.prevY = y;
+        this.applyTransform();
       }
     };
 
-    const endHandler = () => {
+    // For touch devices
+    paper.addEventListener('touchstart', (e) => {
+      if (this.holdingPaper) return;
+      this.holdingPaper = true;
+      this.paper.style.zIndex = highestZ++;
+      this.startX = e.touches[0].clientX;
+      this.startY = e.touches[0].clientY;
+      this.prevX = this.startX;
+      this.prevY = this.startY;
+    });
+
+    paper.addEventListener('touchmove', (e) => {
+      e.preventDefault();
+      handleMovement(e.touches[0].clientX, e.touches[0].clientY);
+    });
+
+    paper.addEventListener('touchend', () => {
       this.holdingPaper = false;
       this.rotating = false;
-    };
-
-    // Add event listeners for touch and mouse interactions
-    paper.addEventListener('touchstart', startHandler);
-    paper.addEventListener('touchmove', moveHandler);
-    paper.addEventListener('touchend', endHandler);
-
-    paper.addEventListener('mousedown', startHandler);
-    paper.addEventListener('mousemove', moveHandler);
-    paper.addEventListener('mouseup', endHandler);
-
-    // For two-finger rotation on touch screens
-    paper.addEventListener('gesturestart', (e) => {
-      e.preventDefault();
-      this.rotating = true;
     });
-    paper.addEventListener('gestureend', () => {
+
+    // For mouse devices
+    paper.addEventListener('mousedown', (e) => {
+      if (this.holdingPaper) return;
+      this.holdingPaper = true;
+      this.paper.style.zIndex = highestZ++;
+      this.startX = e.clientX;
+      this.startY = e.clientY;
+      this.prevX = this.startX;
+      this.prevY = this.startY;
+
+      if (e.button === 2) {
+        this.rotating = true;
+      }
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      if (this.holdingPaper) {
+        handleMovement(e.clientX, e.clientY);
+      }
+    });
+
+    document.addEventListener('mouseup', () => {
+      this.holdingPaper = false;
       this.rotating = false;
     });
+
+    // Handle right-click context menu for rotation
+    paper.addEventListener('contextmenu', (e) => e.preventDefault());
+  }
+
+  applyTransform() {
+    this.paper.style.transform = `translateX(${this.currentX}px) translateY(${this.currentY}px) rotateZ(${this.rotation}deg)`;
   }
 }
 
