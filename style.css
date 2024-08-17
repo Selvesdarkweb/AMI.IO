@@ -62,9 +62,12 @@ img {
 p {
   font-family: "Jersey 10", sans-serif;
   font-size: 50px;
-  color: #28282B;
   user-select: none;
   font-weight: 400;
+  background: #28282B;
+background: radial-gradient(circle farthest-corner at center center, #28282B 0%, #CF1512 100%);
+-webkit-background-clip: text;
+-webkit-text-fill-color: transparent;
   
    filter: drop-shadow(2px 1.5px 1px rgba(0,0,105,0.9));
 }
