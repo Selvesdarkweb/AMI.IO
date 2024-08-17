@@ -1,7 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Zeyada&display=swap');
-
-
-
+@import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400..700&display=swap');
 
 body {
   height: 100vh;
@@ -63,11 +60,11 @@ img {
 }
 
 p {
-  font-family: 'Zeyada';
+  font-family: "Dancing Script", cursive;
   font-size: 50px;
   color: #28282B;
   user-select: none;
-  font-weight: 900;
+  font-weight: 400;
   
    filter: drop-shadow(2px 1.5px 1px rgba(0,0,105,0.9));
 }
